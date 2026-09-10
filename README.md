@@ -9,8 +9,7 @@
 API RESTful para gerenciamento de Treinadores e catálogo de Pokémons, desenvolvida para a disciplina de **Projeto de Banco de Dados / Tópicos Especiais de Engenharia de Software** da Universidade Federal Fluminense (UFF).  
 **Professor:** Carlos Eduardo Cardoso
 
-📖 **Documentação Swagger UI:** [http://localhost:3000/api/docs](http://localhost:3000/api/docs)  
-📄 **Documentação Completa da Arquitetura:** [md/DOCUMENTACAO.md](./md/DOCUMENTACAO.md)
+📖 **Documentação Swagger UI:** [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
 
 ---
 
