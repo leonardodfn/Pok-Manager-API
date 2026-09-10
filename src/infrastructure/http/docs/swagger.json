@@ -1,0 +1,340 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "PokéManager API",
+    "description": "API RESTful para gerenciamento do catálogo de Pokémons construída com Clean Architecture, TypeScript e Repositório In-Memory (Entrega 1 - UFF).",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Ambiente Local de Desenvolvimento"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Pokémons",
+      "description": "Operações do catálogo de espécies Pokémon"
+    }
+  ],
+  "paths": {
+    "/api/v1/pokemons": {
+      "get": {
+        "tags": ["Pokémons"],
+        "summary": "Lista espécies do catálogo local",
+        "description": "Retorna todos os Pokémons cadastrados em memória, com opção de filtro por tipo.",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Filtrar Pokémons por tipo elemental (ex: fire, water, electric)",
+            "schema": {
+              "type": "string",
+              "example": "electric"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de Pokémons retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Pokemon"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Pokémons"],
+        "summary": "Cadastra manualmente um Pokémon no catálogo local",
+        "description": "Adiciona uma nova espécie de Pokémon à coleção em memória.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePokemonInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pokémon cadastrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pokemon"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados da requisição inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Pokémon com esse nome ou ID já cadastrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pokemons/{id}": {
+      "get": {
+        "tags": ["Pokémons"],
+        "summary": "Busca espécie local por ID",
+        "description": "Obtém os detalhes completos de uma espécie de Pokémon cadastrada pelo seu ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador do Pokémon",
+            "schema": {
+              "type": "string",
+              "example": "25"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pokémon encontrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pokemon"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pokémon não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Pokémons"],
+        "summary": "Atualização dos dados no catálogo local",
+        "description": "Atualiza os campos informados de uma espécie existente no catálogo.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador do Pokémon a ser atualizado",
+            "schema": {
+              "type": "string",
+              "example": "25"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePokemonInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pokémon atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pokemon"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisição inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pokémon não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflito com o nome já existente de outro Pokémon",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Pokémons"],
+        "summary": "Remoção do catálogo local",
+        "description": "Remove um Pokémon cadastrado em memória pelo seu ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador do Pokémon a ser removido",
+            "schema": {
+              "type": "string",
+              "example": "25"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pokémon removido com sucesso (sem conteúdo no corpo)"
+          },
+          "404": {
+            "description": "Pokémon não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PokemonStats": {
+        "type": "object",
+        "properties": {
+          "hp": { "type": "integer", "example": 35 },
+          "attack": { "type": "integer", "example": 55 },
+          "defense": { "type": "integer", "example": 40 },
+          "specialAttack": { "type": "integer", "example": 50 },
+          "specialDefense": { "type": "integer", "example": 50 },
+          "speed": { "type": "integer", "example": 90 }
+        },
+        "required": ["hp", "attack", "defense", "specialAttack", "specialDefense", "speed"]
+      },
+      "Pokemon": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "25" },
+          "name": { "type": "string", "example": "pikachu" },
+          "types": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["electric"]
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/PokemonStats"
+          },
+          "height": { "type": "number", "example": 4 },
+          "weight": { "type": "number", "example": 60 },
+          "spriteUrl": {
+            "type": "string",
+            "example": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+          },
+          "createdAt": { "type": "string", "format": "date-time", "example": "2026-09-10T19:00:00.000Z" },
+          "updatedAt": { "type": "string", "format": "date-time", "example": "2026-09-10T19:00:00.000Z" }
+        },
+        "required": ["id", "name", "types", "attributes", "height", "weight", "createdAt", "updatedAt"]
+      },
+      "CreatePokemonInput": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "143" },
+          "name": { "type": "string", "example": "snorlax" },
+          "types": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["normal"]
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/PokemonStats"
+          },
+          "height": { "type": "number", "example": 21 },
+          "weight": { "type": "number", "example": 4600 },
+          "spriteUrl": {
+            "type": "string",
+            "example": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png"
+          }
+        },
+        "required": ["name", "types", "attributes"]
+      },
+      "UpdatePokemonInput": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "raichu" },
+          "types": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["electric"]
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "hp": { "type": "integer", "example": 60 },
+              "attack": { "type": "integer", "example": 90 },
+              "defense": { "type": "integer", "example": 55 },
+              "specialAttack": { "type": "integer", "example": 90 },
+              "specialDefense": { "type": "integer", "example": 80 },
+              "speed": { "type": "integer", "example": 110 }
+            }
+          },
+          "height": { "type": "number", "example": 8 },
+          "weight": { "type": "number", "example": 300 },
+          "spriteUrl": { "type": "string", "example": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "error" },
+          "message": { "type": "string", "example": "Pokémon não encontrado." }
+        },
+        "required": ["status", "message"]
+      }
+    }
+  }
+}
