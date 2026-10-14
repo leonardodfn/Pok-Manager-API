@@ -17,14 +17,17 @@ API RESTful para gerenciamento de Treinadores e catálogo de Pokémons, desenvol
 
 A **PokéManager API** é uma solução backend construída do zero ao longo do semestre letivo com foco em arquitetura de software de alta qualidade, desacoplamento e manutenibilidade.
 
-O objetivo do sistema é permitir que Treinadores realizem cadastro, gerenciem suas coleções e montem seus times de até 6 Pokémons, integrando futuramente dados reais da PokéAPI para validação de estatísticas oficiais.
+O objetivo do sistema é permitir que Treinadores realizem cadastro, gerenciem suas coleções e montem times de até 6 Pokémons com dados oficiais da PokéAPI.
 
 O projeto segue princípios rigorosos de **Clean Architecture**, **Domain-Driven Design (DDD)**, **SOLID** e tipagem estática.
 
-### 📍 Status Atual: Entrega 1 (CheckPoint 10/09) — Concluída
+### 📍 Status Atual: Entrega 2 (CheckPoint 08/10) — Concluída
 - [x] Estrutura base em Clean Architecture com isolamento estrito de camadas
 - [x] TypeScript estrito configurado com *path aliases* (`@domain`, `@application`, `@infrastructure`, `@main`)
-- [x] Repositório em memória (`InMemoryPokemonRepository`) com dados semente
+- [x] Persistência relacional com PostgreSQL e Prisma
+- [x] Validação das requisições com Zod
+- [x] Integração com a PokéAPI para busca de espécies
+- [x] Cadastro de treinadores e captura de até 6 Pokémons por treinador
 - [x] Contrato REST completo (CRUD do catálogo de espécies com filtro por tipo)
 - [x] Documentação interativa via Swagger / OpenAPI 3.0 exposta em `/api/docs`
 - [x] ESLint e Prettier integrados e sem alertas
@@ -39,7 +42,8 @@ O projeto segue princípios rigorosos de **Clean Architecture**, **Domain-Driven
 | **TypeScript (v6+)** | Superset tipado em modo estrito (`strict: true`, `noImplicitAny`) |
 | **Express (v5)** | Framework minimalista para roteamento e middleware HTTP |
 | **Clean Architecture** | Padrão arquitetural que isola o domínio de frameworks e banco de dados |
-| **In-Memory Repository** | Armazenamento de dados em memória (`Map`) para testes e validações rápidas |
+| **PostgreSQL + Prisma** | Persistência relacional de Pokémons, treinadores e capturas |
+| **Zod** | Validação dos dados recebidos pela API |
 | **Swagger UI / OpenAPI 3.0** | Interface gráfica interativa para teste e visualização dos endpoints |
 | **ESLint & Prettier** | Análise estática e formatação de código padronizada |
 | **tsx** | Execução e recarregamento automático em desenvolvimento com suporte a path aliases |
@@ -79,7 +83,9 @@ Pok-Manager-API/
 │   │
 │   ├── infrastructure/                  # CAMADA 3: INFRAESTRUTURA (Tecnologias Externas)
 │   │   ├── repositories/
-│   │   │   └── InMemoryPokemonRepository.ts # Implementação em memória com dados semente
+│   │   │   ├── PrismaPokemonRepository.ts # Persistência do catálogo no PostgreSQL
+│   │   │   ├── PrismaTrainerRepository.ts # Persistência de treinadores
+│   │   │   └── PrismaPokemonCaptureRepository.ts # Persistência das capturas
 │   │   ├── http/
 │   │   │   ├── controllers/
 │   │   │   │   └── PokemonController.ts # Adaptador HTTP (trata req e res do Express)
@@ -132,14 +138,21 @@ Copie o arquivo de exemplo para criar o `.env`:
 ```bash
 cp .env.example .env
 ```
-*(Conteúdo padrão: `PORT=3000` e `NODE_ENV=development`)*
+Configure `DATABASE_URL` no `.env` com os dados do seu PostgreSQL.
 
 ### 3. Instalar Dependências
 ```bash
 npm install
 ```
 
-### 4. Executar em Desenvolvimento
+### 4. Preparar o banco
+Gere o cliente Prisma e crie/atualize as tabelas no PostgreSQL:
+```bash
+npm run db:generate
+npm run db:push
+```
+
+### 5. Executar em Desenvolvimento
 Inicie o servidor com recarregamento automático (*hot-reload*):
 ```bash
 npm run dev
@@ -151,7 +164,7 @@ PokéManager API rodando em http://localhost:3000
 Documentação Swagger disponível em http://localhost:3000/api/docs
 ```
 
-### 5. Compilar e Rodar em Produção (Opcional)
+### 6. Compilar e Rodar em Produção (Opcional)
 ```bash
 # Compilar TypeScript para JavaScript (dist/)
 npm run build
@@ -160,7 +173,7 @@ npm run build
 npm run start
 ```
 
-### 6. Scripts de Qualidade de Código
+### 7. Scripts de Qualidade de Código
 ```bash
 # Executar análise do ESLint
 npm run lint
@@ -171,7 +184,7 @@ npm run format
 
 ---
 
-## 📡 Endpoints da Entrega 1
+## 📡 Endpoints
 
 Todos os endpoints da API estão versionados sob o prefixo `/api/v1`:
 
@@ -185,12 +198,16 @@ Todos os endpoints da API estão versionados sob o prefixo `/api/v1`:
 | `POST` | `/api/v1/pokemons` | Cadastra manualmente uma espécie no catálogo | `201 Created` |
 | `PUT` | `/api/v1/pokemons/:id` | Atualiza dados de uma espécie existente | `200 OK` |
 | `DELETE` | `/api/v1/pokemons/:id` | Remove uma espécie do catálogo | `204 No Content` |
+| `GET` | `/api/v1/pokedex/search?name=pikachu` | Busca dados oficiais na PokéAPI | `200 OK` |
+| `POST` | `/api/v1/trainers` | Cadastra treinador (`name` e `email`) | `201 Created` |
+| `POST` | `/api/v1/trainers/:trainerId/captures` | Captura e adiciona Pokémon ao time | `201 Created` |
+| `GET` | `/api/v1/trainers/:trainerId/team` | Lista o time atual do treinador | `200 OK` |
 
 ---
 
 ## 🧪 Exemplos de Requisições (cURL)
 
-A aplicação já vem com 5 espécies sementes pré-cadastradas na memória para teste imediato: **Bulbasaur (#1)**, **Charmander (#4)**, **Squirtle (#7)**, **Pikachu (#25)** e **Gengar (#94)**.
+As espécies, treinadores e capturas são persistidos no PostgreSQL. O catálogo começa vazio; uma captura consulta a PokéAPI e salva os dados da espécie no banco.
 
 ### Listar catálogo com filtro de tipo
 ```bash

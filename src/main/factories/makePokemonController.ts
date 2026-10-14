@@ -1,4 +1,4 @@
-import { InMemoryPokemonRepository } from '@infrastructure/repositories/InMemoryPokemonRepository';
+import { PrismaPokemonRepository } from '@infrastructure/repositories/PrismaPokemonRepository';
 import { ListPokemonsUseCase } from '@application/use-cases/ListPokemonsUseCase';
 import { GetPokemonByIdUseCase } from '@application/use-cases/GetPokemonByIdUseCase';
 import { CreatePokemonUseCase } from '@application/use-cases/CreatePokemonUseCase';
@@ -6,7 +6,7 @@ import { UpdatePokemonUseCase } from '@application/use-cases/UpdatePokemonUseCas
 import { DeletePokemonUseCase } from '@application/use-cases/DeletePokemonUseCase';
 import { PokemonController } from '@infrastructure/http/controllers/PokemonController';
 
-const pokemonRepository = new InMemoryPokemonRepository();
+const pokemonRepository = new PrismaPokemonRepository();
 
 export function makePokemonController(): PokemonController {
   const listPokemonsUseCase = new ListPokemonsUseCase(pokemonRepository);

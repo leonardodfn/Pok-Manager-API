@@ -4,6 +4,8 @@ import { createApiRouter } from '@infrastructure/http/routes';
 import { errorHandler } from '@infrastructure/http/middlewares/errorHandler';
 import { setupSwagger } from '@infrastructure/http/docs/swagger';
 import { makePokemonController } from '@main/factories/makePokemonController';
+import { makePokedexController } from '@main/factories/makePokedexController';
+import { makeTrainerController } from '@main/factories/makeTrainerController';
 
 export function createApp(): Express {
   const app = express();
@@ -14,7 +16,9 @@ export function createApp(): Express {
   setupSwagger(app);
 
   const pokemonController = makePokemonController();
-  const apiRouter = createApiRouter(pokemonController);
+  const pokedexController = makePokedexController();
+  const trainerController = makeTrainerController();
+  const apiRouter = createApiRouter(pokemonController, pokedexController, trainerController);
 
   app.use('/api/v1', apiRouter);
 

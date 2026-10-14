@@ -15,9 +15,108 @@
     {
       "name": "Pokémons",
       "description": "Operações do catálogo de espécies Pokémon"
+    },
+    {
+      "name": "Pokédex",
+      "description": "Consulta de dados oficiais na PokéAPI"
+    },
+    {
+      "name": "Treinadores",
+      "description": "Cadastro de treinadores e gerenciamento do time"
     }
   ],
   "paths": {
+    "/api/v1/pokedex/search": {
+      "get": {
+        "tags": ["Pokédex"],
+        "summary": "Busca um Pokémon na PokéAPI",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "pikachu" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados oficiais do Pokémon",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PokemonSearch" }
+              }
+            }
+          },
+          "404": { "description": "Pokémon não encontrado" },
+          "502": { "description": "Falha ao consultar a PokéAPI" }
+        }
+      }
+    },
+    "/api/v1/trainers": {
+      "post": {
+        "tags": ["Treinadores"],
+        "summary": "Cadastra um treinador",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTrainerInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Treinador cadastrado" },
+          "400": { "description": "Dados inválidos" },
+          "409": { "description": "E-mail já cadastrado" }
+        }
+      }
+    },
+    "/api/v1/trainers/{trainerId}/captures": {
+      "post": {
+        "tags": ["Treinadores"],
+        "summary": "Captura um Pokémon para o treinador",
+        "parameters": [
+          {
+            "name": "trainerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CapturePokemonInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Pokémon capturado e incluído no time" },
+          "400": { "description": "Dados inválidos" },
+          "404": { "description": "Treinador ou Pokémon não encontrado" },
+          "409": { "description": "Time já possui 6 Pokémons" }
+        }
+      }
+    },
+    "/api/v1/trainers/{trainerId}/team": {
+      "get": {
+        "tags": ["Treinadores"],
+        "summary": "Lista os Pokémons capturados pelo treinador",
+        "parameters": [
+          {
+            "name": "trainerId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Time atual do treinador" },
+          "404": { "description": "Treinador não encontrado" }
+        }
+      }
+    },
     "/api/v1/pokemons": {
       "get": {
         "tags": ["Pokémons"],
@@ -279,6 +378,32 @@
           "updatedAt": { "type": "string", "format": "date-time", "example": "2026-09-10T19:00:00.000Z" }
         },
         "required": ["id", "name", "types", "attributes", "height", "weight", "createdAt", "updatedAt"]
+      },
+      "PokemonSearch": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "25" },
+          "name": { "type": "string", "example": "pikachu" },
+          "types": { "type": "array", "items": { "type": "string" } },
+          "attributes": { "$ref": "#/components/schemas/PokemonStats" },
+          "height": { "type": "integer", "example": 4 },
+          "weight": { "type": "integer", "example": 60 },
+          "spriteUrl": { "type": "string", "example": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" }
+        },
+        "required": ["id", "name", "types", "attributes", "height", "weight"]
+      },
+      "CreateTrainerInput": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Ash Ketchum" },
+          "email": { "type": "string", "format": "email", "example": "ash@example.com" }
+        },
+        "required": ["name", "email"]
+      },
+      "CapturePokemonInput": {
+        "type": "object",
+        "properties": { "name": { "type": "string", "example": "pikachu" } },
+        "required": ["name"]
       },
       "CreatePokemonInput": {
         "type": "object",
